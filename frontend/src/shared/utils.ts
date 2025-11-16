@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Timestamp } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
 
 /** Shared utils. */
@@ -31,14 +30,28 @@ export const LUMI_DOCUMENT_VERSION = 0;
 // TYPES
 // ****************************************************************************
 
-// Helper for Timestamp (make it work between admin & sdk).
-//
-// Packages firebase-admin/firestore and firebase/firestore use
-// different Timestamp types. This type is a workaround to handle both types
-// in the same codebase.
-// When creating a new Timestamp, use the Timestamp class from the correct
-// package (its type is compatible with this type)
-export type UnifiedTimestamp = Omit<Timestamp, 'toJSON'>;
+// Simple timestamp interface to replace Firebase Timestamp
+export interface UnifiedTimestamp {
+  seconds: number;
+  nanoseconds: number;
+  toDate(): Date;
+  toMillis(): number;
+}
+
+// Helper function to create a timestamp (replaces Timestamp.now())
+function createTimestamp(): UnifiedTimestamp {
+  const now = Date.now();
+  return {
+    seconds: Math.floor(now / 1000),
+    nanoseconds: (now % 1000) * 1000000,
+    toDate(): Date {
+      return new Date(this.seconds * 1000 + this.nanoseconds / 1000000);
+    },
+    toMillis(): number {
+      return this.seconds * 1000 + this.nanoseconds / 1000000;
+    },
+  };
+}
 
 /** Temporary LumiDocument object. */
 export interface LumiDocument {
@@ -63,8 +76,8 @@ export function createLumiDocument(
     versionLumi: config.versionLumi ?? LUMI_DOCUMENT_VERSION,
     versionArxiv: config.versionArxiv ?? '',
     content: config.content ?? '',
-    dateCreated: config.dateCreated ?? Timestamp.now(),
-    dateEdited: config.dateEdited ?? Timestamp.now(),
+    dateCreated: config.dateCreated ?? createTimestamp(),
+    dateEdited: config.dateEdited ?? createTimestamp(),
   };
 }
 

@@ -25,7 +25,7 @@ project_root = os.path.abspath(os.path.join(script_dir, ".."))
 sys.path.insert(0, project_root)
 
 
-from answers.answers import generate_lumi_answer  # noqa: E402
+from answers import generate_lumi_answer  # noqa: E402
 from shared.api import LumiAnswerRequest  # noqa: E402
 from shared.lumi_doc import (  # noqa: E402
     Heading,

@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from shared.json_utils import convert_keys
 from utils.surreal_utils import get_document_version
 from websocket import get_connection_manager
 
@@ -13,8 +14,6 @@ router = APIRouter()
 async def document_status_websocket(websocket: WebSocket, arxiv_id: str, version: str):
     """
     WebSocket endpoint for real-time document status updates
-
-    Replaces: Firestore onSnapshot listener
 
     Client connects to: ws://localhost:8001/ws/{arxiv_id}/{version}
 
@@ -29,21 +28,12 @@ async def document_status_websocket(websocket: WebSocket, arxiv_id: str, version
         }
     }
     """
-    client_host = websocket.client.host if websocket.client else "unknown"
-    client_port = websocket.client.port if websocket.client else "unknown"
-
-    logger.info(
-        f"[WebSocket] Connection attempt: {arxiv_id} v{version} from {client_host}:{client_port}"
-    )
-
     manager = get_connection_manager()
     paper_key = f"{arxiv_id}_v{version}"
 
     await manager.connect(websocket, paper_key)
-    logger.info(
-        f"[WebSocket] Connection established: {arxiv_id} v{version} (key: {paper_key})"
-    )
 
+    message_count = 0
     try:
         # Send initial status
         logger.info(
@@ -51,47 +41,36 @@ async def document_status_websocket(websocket: WebSocket, arxiv_id: str, version
         )
         doc = await get_document_version(arxiv_id, version)
         if doc:
-            from shared.json_utils import convert_keys
-
-            # Convert to camelCase for frontend
             doc_camelcase = convert_keys(doc, "snake_to_camel")
-
-            # If document is already complete (SUCCESS), send full document
-            # Otherwise, just send status for documents still being processed
-            if doc.get("loading_status") == "SUCCESS":
+            if doc_camelcase.get("loadingStatus") == "SUCCESS":
                 logger.info(
                     f"[WebSocket] Document is SUCCESS, sending full document to {arxiv_id} v{version}"
                 )
-                await manager.send_update(paper_key, version, doc_camelcase)
+                await manager.send_update(paper_key, doc_camelcase)
             else:
-                # For in-progress documents, send status + metadata (needed for loading UI)
+                # Extract only the necessary fields for non-SUCCESS status
                 initial_data = {
                     "loadingStatus": doc.get("loading_status"),
                     "updatedTimestamp": doc.get("updated_timestamp"),
-                    "metadata": doc.get(
-                        "metadata"
-                    ),  # Include metadata for loading component
+                    "metadata": doc.get("metadata"),
                 }
+                initial_data_camelcase = convert_keys(initial_data, "snake_to_camel")
                 logger.info(
-                    f"[WebSocket] Sending initial status to {arxiv_id} v{version}: {initial_data}"
+                    f"[WebSocket] Sending initial status to {arxiv_id} v{version}: {initial_data_camelcase}"
                 )
-                await manager.send_update(paper_key, version, initial_data)
+                await manager.send_update(paper_key, initial_data_camelcase)
         else:
             logger.warning(
                 f"[WebSocket] No document found for {arxiv_id} v{version}, sending empty status"
             )
             await manager.send_update(
                 paper_key,
-                version,
                 {
                     "loadingStatus": None,
                     "updatedTimestamp": None,
                 },
             )
 
-        # Keep connection alive - just wait for disconnect or messages
-        # The ConnectionManager will push updates when document changes
-        message_count = 0
         while True:
             try:
                 # Wait for client messages with timeout to allow periodic checks
@@ -111,9 +90,7 @@ async def document_status_websocket(websocket: WebSocket, arxiv_id: str, version
                         f"[WebSocket] Connection dead for {arxiv_id} v{version}: {e}"
                     )
                     break
-
     except WebSocketDisconnect:
-        manager.disconnect(websocket, paper_key)
         logger.info(
             f"[WebSocket] Client disconnected: {arxiv_id} v{version} (received {message_count} messages)"
         )
@@ -122,4 +99,6 @@ async def document_status_websocket(websocket: WebSocket, arxiv_id: str, version
             f"[WebSocket] Error in WebSocket handler for {arxiv_id} v{version}: {e}",
             exc_info=True,
         )
+    finally:
+        # Always disconnect to ensure cleanup
         manager.disconnect(websocket, paper_key)

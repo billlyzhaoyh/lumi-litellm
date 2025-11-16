@@ -20,13 +20,11 @@ import browserPlugin from 'router5-plugin-browser';
 import { computed, makeObservable, observable } from 'mobx';
 
 import { Service } from './service';
-import { AnalyticsService } from './analytics.service';
 import { DocumentStateService } from './document_state.service';
 import { HistoryService } from './history.service';
 import { HomeService } from './home.service';
 
 interface ServiceProvider {
-  analyticsService: AnalyticsService;
   documentStateService: DocumentStateService;
   historyService: HistoryService;
   homeService: HomeService;
@@ -108,12 +106,6 @@ export class RouterService extends Service {
     }
 
     this.activeRoute = routeChange.route;
-    if (this.activePage) {
-      this.sp.analyticsService.trackPageView(
-        this.activePage,
-        this.activeRoute.path
-      );
-    }
 
     const currentPage = this.getPage(this.activeRoute);
     if (

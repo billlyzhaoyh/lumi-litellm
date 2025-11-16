@@ -16,13 +16,12 @@
  */
 
 import { ArxivMetadata, LumiDoc } from './lumi_doc';
-import { LumiAnswer, LumiAnswerRequest, UserFeedback } from './api';
+import { LumiAnswer, LumiAnswerRequest } from './api';
 import { PaperData } from './types_local_storage';
 import { ApiService } from '../services/api.service';
 
 /**
- * FastAPI backend callables (replaces Firebase cloud functions)
- *
+ * FastAPI backend callables
  * These functions provide the same interface as the Firebase callables
  * but use the FastAPI backend via REST APIs.
  */
@@ -90,18 +89,6 @@ export const getPersonalSummaryCallable = async (
   apiKey: string | null
 ): Promise<LumiAnswer> => {
   return await apiService.getPersonalSummary(doc, pastPapers, apiKey);
-};
-
-/**
- * Saves user feedback.
- * @param apiService The ApiService instance.
- * @param feedback The user feedback data.
- */
-export const saveUserFeedbackCallable = async (
-  apiService: ApiService,
-  feedback: UserFeedback
-): Promise<void> => {
-  await apiService.saveFeedback(feedback.userFeedbackText, feedback.arxivId);
 };
 
 /**

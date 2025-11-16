@@ -25,14 +25,9 @@ import { APP_NAME, LOGO_ICON_NAME } from '../../shared/constants';
 import '../../pair-components/icon_button';
 import '../../pair-components/tooltip';
 import {
-  AnalyticsAction,
-  AnalyticsService,
-} from '../../services/analytics.service';
-import {
   DialogService,
   HistoryDialogProps,
   TutorialDialogProps,
-  UserFeedbackDialogProps,
 } from '../../services/dialog.service';
 import {
   FloatingPanelService,
@@ -46,34 +41,25 @@ import {
 @customElement('sidebar-header')
 export class SidebarHeader extends MobxLitElement {
   static override styles: CSSResultGroup = [styles];
-  private readonly analyticsService = core.getService(AnalyticsService);
   private readonly dialogService = core.getService(DialogService);
   private readonly floatingPanelService = core.getService(FloatingPanelService);
   private readonly routerService = core.getService(RouterService);
 
   @property({ type: Boolean }) includeAppName = false;
 
-  private handleFeedbackClick() {
-    this.floatingPanelService.hide();
-    this.analyticsService.trackAction(
-      AnalyticsAction.SIDEBAR_HEADER_FEEDBACK_CLICK
-    );
-    this.dialogService.show(new UserFeedbackDialogProps());
-  }
-
   private onSeeHistoryClick() {
     this.floatingPanelService.hide();
-    this.analyticsService.trackAction(
-      AnalyticsAction.SIDEBAR_HEADER_HISTORY_CLICK
-    );
+    // this.analyticsService.trackAction(
+    //   AnalyticsAction.SIDEBAR_HEADER_HISTORY_CLICK
+    // );
     this.dialogService.show(new HistoryDialogProps());
   }
 
   private handleTutorialClick() {
     this.floatingPanelService.hide();
-    this.analyticsService.trackAction(
-      AnalyticsAction.SIDEBAR_HEADER_TUTORIAL_CLICK
-    );
+    // this.analyticsService.trackAction(
+    //   AnalyticsAction.SIDEBAR_HEADER_TUTORIAL_CLICK
+    // );
     this.dialogService.show(
       new TutorialDialogProps(/* isUserTriggered */ true)
     );
@@ -85,11 +71,6 @@ export class SidebarHeader extends MobxLitElement {
         icon: 'contextual_token',
         label: 'View Lumi history',
         onClick: this.onSeeHistoryClick.bind(this),
-      },
-      {
-        icon: 'feedback',
-        label: 'Send feedback',
-        onClick: this.handleFeedbackClick.bind(this),
       },
       {
         icon: 'help',
@@ -128,7 +109,7 @@ export class SidebarHeader extends MobxLitElement {
   }
 
   private navigateHome() {
-    this.analyticsService.trackAction(AnalyticsAction.HEADER_NAVIGATE_HOME);
+    // this.analyticsService.trackAction(AnalyticsAction.HEADER_NAVIGATE_HOME);
     this.routerService.navigate(Pages.HOME);
   }
 

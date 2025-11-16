@@ -36,8 +36,9 @@ async def get_arxiv_metadata(arxiv_id: str):
                     return doc["metadata"]
     except Exception as e:
         logger.error(f"Error fetching metadata for {arxiv_id}: {e}")
-
-    # Not found
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        ) from e
     logger.error(f"Metadata not found for {arxiv_id}")
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail="Metadata not found"

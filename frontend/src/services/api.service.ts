@@ -345,17 +345,4 @@ export class ApiService extends Service {
     });
     return result;
   }
-
-  /**
-   * Save user feedback (replaces saveUserFeedbackCallable)
-   */
-  async saveFeedback(feedbackText: string, arxivId?: string): Promise<void> {
-    await this.fetchApi('/api/feedback', {
-      method: 'POST',
-      body: JSON.stringify({
-        user_feedback_text: feedbackText,
-        arxiv_id: arxivId,
-      }),
-    });
-  }
 }

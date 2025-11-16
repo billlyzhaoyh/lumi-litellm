@@ -16,12 +16,10 @@
  */
 
 import { Core } from './core/core';
-import { AnalyticsService } from './services/analytics.service';
 import { ApiService } from './services/api.service';
 import { BannerService } from './services/banner.service';
 import { DialogService } from './services/dialog.service';
 import { DocumentStateService } from './services/document_state.service';
-import { FirebaseService } from './services/firebase.service';
 import { FloatingPanelService } from './services/floating_panel_service';
 import { HistoryService } from './services/history.service';
 import { HomeService } from './services/home.service';
@@ -36,9 +34,6 @@ import { SettingsService } from './services/settings.service';
  */
 export function makeServiceProvider(self: Core) {
   const serviceProvider = {
-    get analyticsService() {
-      return self.getService(AnalyticsService);
-    },
     get apiService() {
       return self.getService(ApiService);
     },
@@ -50,9 +45,6 @@ export function makeServiceProvider(self: Core) {
     },
     get documentStateService() {
       return self.getService(DocumentStateService);
-    },
-    get firebaseService() {
-      return self.getService(FirebaseService);
     },
     get floatingPanelService() {
       return self.getService(FloatingPanelService);

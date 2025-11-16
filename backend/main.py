@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from api import documents, feedback, metadata, papers, queries, websockets
+from api import documents, metadata, papers, queries, websockets
 from config import settings
 from database import close_db, connect_db
 from fastapi import FastAPI, Request
@@ -94,7 +94,6 @@ app.include_router(papers.router, prefix="/api/papers", tags=["papers"])
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(queries.router, prefix="/api/queries", tags=["queries"])
 app.include_router(metadata.router, prefix="/api/metadata", tags=["metadata"])
-app.include_router(feedback.router, prefix="/api/feedback", tags=["feedback"])
 app.include_router(websockets.router, prefix="/ws", tags=["websockets"])
 
 

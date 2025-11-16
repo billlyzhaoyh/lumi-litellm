@@ -33,10 +33,6 @@ import '../../pair-components/textinput';
 import { styles } from './smart_highlight_menu.scss';
 import { TextInput } from '../../pair-components/textinput';
 import {
-  AnalyticsAction,
-  AnalyticsService,
-} from '../../services/analytics.service';
-import {
   INPUT_DEBOUNCE_MS,
   MAX_QUERY_INPUT_LENGTH,
 } from '../../shared/constants';
@@ -51,7 +47,6 @@ import { isViewportSmall } from '../../shared/responsive_utils';
 export class SmartHighlightMenu extends MobxLitElement {
   static override styles: CSSResultGroup = [styles];
   private readonly floatingPanelService = core.getService(FloatingPanelService);
-  private readonly analyticsService = core.getService(AnalyticsService);
   private readonly historyService = core.getService(HistoryService);
 
   @property({ type: Object }) props!: SmartHighlightMenuProps;
@@ -61,7 +56,7 @@ export class SmartHighlightMenu extends MobxLitElement {
   @query('pr-textinput') private textInput?: TextInput;
 
   private handleDefineClick() {
-    this.analyticsService.trackAction(AnalyticsAction.MENU_EXPLAIN_CLICK);
+    // this.analyticsService.trackAction(AnalyticsAction.MENU_EXPLAIN_CLICK);
     this.props.onDefine(
       this.props.selectedText,
       this.props.highlightedSpans,
@@ -71,7 +66,7 @@ export class SmartHighlightMenu extends MobxLitElement {
   }
 
   private handleAskClick() {
-    this.analyticsService.trackAction(AnalyticsAction.MENU_ASK_CLICK);
+    // this.analyticsService.trackAction(AnalyticsAction.MENU_ASK_CLICK);
     this.isAsking = true;
     this.updateComplete.then(() => {
       this.textInput?.focus();
@@ -79,7 +74,7 @@ export class SmartHighlightMenu extends MobxLitElement {
   }
 
   private handleSendClick() {
-    this.analyticsService.trackAction(AnalyticsAction.MENU_SEND_QUERY);
+    // this.analyticsService.trackAction(AnalyticsAction.MENU_SEND_QUERY);
     this.props.onAsk(
       this.props.selectedText,
       this.queryText,

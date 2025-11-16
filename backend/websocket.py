@@ -59,54 +59,59 @@ class ConnectionManager:
                     f"[WebSocket] Attempted to disconnect websocket that wasn't registered for {paper_id}"
                 )
 
-    async def send_update(self, paper_id: str, version: str, data: dict):
+    async def send_update(self, paper_key: str, data: dict):
         """
         Send update to all connections watching a specific paper
 
         Args:
-            paper_id: ArXiv paper ID
-            version: Paper version
+            paper_key: Paper key in format "{arxiv_id}_v{version}"
             data: Update data (status, progress, etc.) - should use camelCase keys
         """
-        if paper_id not in self.active_connections:
+        if paper_key not in self.active_connections:
             logger.debug(
-                f"[WebSocket] No active connections for {paper_id}, skipping update"
+                f"[WebSocket] No active connections for {paper_key}, skipping update"
             )
             return
 
+        # Extract arxiv_id and version from paper_key for the message
+        # paper_key format: "2301.07041_v1"
+        parts = paper_key.rsplit("_v", 1)
+        arxiv_id = parts[0] if len(parts) == 2 else paper_key
+        version = parts[1] if len(parts) == 2 else "1"
+
         message = {
-            "paper_id": paper_id,
+            "paper_id": arxiv_id,
             "version": version,
             "type": "document_update",
             "data": data,
         }
         message_str = json.dumps(message)
 
-        connection_count = len(self.active_connections[paper_id])
+        connection_count = len(self.active_connections[paper_key])
         logger.info(
-            f"[WebSocket] Sending update to {connection_count} connection(s) for {paper_id} v{version}: {json.dumps(data, indent=2)}"
+            f"[WebSocket] Sending update to {connection_count} connection(s) for {paper_key}: {json.dumps(data, indent=2)}"
         )
 
         # Send to all connected clients
         disconnected = set()
         sent_count = 0
-        for websocket in self.active_connections[paper_id]:
+        for websocket in self.active_connections[paper_key]:
             try:
                 await websocket.send_text(message_str)
                 sent_count += 1
             except Exception as e:
                 logger.error(
-                    f"[WebSocket] Error sending to websocket for {paper_id}: {e}"
+                    f"[WebSocket] Error sending to websocket for {paper_key}: {e}"
                 )
                 disconnected.add(websocket)
 
         logger.info(
-            f"[WebSocket] Successfully sent update to {sent_count}/{connection_count} connection(s) for {paper_id}"
+            f"[WebSocket] Successfully sent update to {sent_count}/{connection_count} connection(s) for {paper_key}"
         )
 
         # Clean up disconnected websockets
         for websocket in disconnected:
-            self.disconnect(websocket, paper_id)
+            self.disconnect(websocket, paper_key)
 
     async def broadcast(self, message: dict):
         """Broadcast message to all connected clients"""

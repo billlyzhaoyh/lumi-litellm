@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { Bytes } from 'firebase/firestore';
-
 // Kept in sync with: functions/shared/lumi_doc.py
 export interface Position {
   startIndex: number;
@@ -123,7 +121,7 @@ export interface FigureContent {
 // (The backend will directly write the bytes to storage and does not need this type.)
 export interface LumiImage {
   storagePath: string;
-  bytes: Bytes;
+  bytes: Uint8Array; // Changed from Firebase Bytes
 }
 
 export interface HtmlFigureContent {

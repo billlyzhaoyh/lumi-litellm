@@ -1,17 +1,17 @@
-# Welcome to Lumi
+# Welcome to Lumi-Litellm clone
 
-[Lumi](https://lumi.withgoogle.com) uses AI to help you quickly read and
+This is a clone of the [Lumi](https://github.com/PAIR-code/lumi) project,
+using [LiteLLM](https://github.com/BerriAI/litellm) as the main LLM engine
+in the backend instead of the original
+[Gemini API](https://ai.google.dev/gemini-api/terms). I am currently using
+OpenAI's API for this.
+
+Lumi uses AI to help you quickly read and
 understand [arXiv papers](https://arxiv.org/). Features include:
 
 - ✏️ **AI-augmented annotations** - read summaries at multiple granularities
 - 🔖 **Smart highlights** - highlight text + ask questions
 - 🖼️ **Figure explanations** - ask Lumi about images in the paper
-
-[Demo](https://lumi.withgoogle.com) |
-[Medium article][medium] |
-[GitHub discussions](https://github.com/PAIR-code/lumi/discussions)
-
-[medium]: https://medium.com/people-ai-research/read-smarter-not-harder-with-lumi-6a1a8210ccc7
 
 ![Screenshots of Lumi desktop and mobile views](assets/combined_desktop_mobile.png)
 
@@ -20,24 +20,14 @@ Creative Commons license.*
 
 ## Running Lumi locally
 
-### Set up Firebase functions and emulators
-
-Follow instructions in
-[`functions/README.md`](https://github.com/PAIR-code/lumi/tree/main/functions)
-to install relevant dependencies and run local emulators.
-
 ### Start frontend web app
 
 ```bash
 cd frontend  # If navigating from top level
 npm install  # Only run once
 
-# Create an index.html file and (optionally) replace the placeholder
-# analytics ID (see TODOs in example file) with your Google Analytics ID
+# Create an index.html file
 cp index.example.html index.html
-
-# Create a firebase_config.ts file and replace the placeholder.
-cp firebase_config.example.ts firebase_config.ts
 
 npm run start
 ```

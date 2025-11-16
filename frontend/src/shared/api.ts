@@ -39,9 +39,3 @@ export interface LumiAnswer {
   timestamp: number;
   isLoading?: boolean;
 }
-
-// Kept in sync with: functions/shared/api.py
-export interface UserFeedback {
-  userFeedbackText: string;
-  arxivId?: string;
-}

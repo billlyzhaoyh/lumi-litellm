@@ -31,10 +31,6 @@ import { DocumentStateService } from '../../services/document_state.service';
 import { core } from '../../core/core';
 import { consume } from '@lit/context';
 import { scrollContext, ScrollState } from '../../contexts/scroll_context';
-import {
-  AnalyticsAction,
-  AnalyticsService,
-} from '../../services/analytics.service';
 import { SIDEBAR_TABS } from '../../shared/constants';
 import {
   AnswerHighlightTooltipProps,
@@ -52,7 +48,6 @@ import { createRef, Ref, ref } from 'lit/directives/ref.js';
 export class LumiSidebar extends LightMobxLitElement {
   private readonly documentStateService = core.getService(DocumentStateService);
   private readonly floatingPanelService = core.getService(FloatingPanelService);
-  private readonly analyticsService = core.getService(AnalyticsService);
   private readonly historyService = core.getService(HistoryService);
   private readonly collapseManager = this.documentStateService.collapseManager;
 
@@ -88,7 +83,7 @@ export class LumiSidebar extends LightMobxLitElement {
 
   private renderHeader() {
     const handleTabClick = (tab: string) => {
-      this.analyticsService.trackAction(AnalyticsAction.SIDEBAR_TAB_CHANGE);
+      // this.analyticsService.trackAction(AnalyticsAction.SIDEBAR_TAB_CHANGE);
       this.collapseManager?.setSidebarTabSelection(tab);
       if (this.collapseManager?.isMobileSidebarCollapsed) {
         this.collapseManager?.toggleMobileSidebarCollapsed();
@@ -169,9 +164,9 @@ export class LumiSidebar extends LightMobxLitElement {
           .lumiSummariesMap=${this.documentStateService.lumiDocManager
             ?.summaryMaps}
           .onSectionClicked=${(sectionId: string) => {
-            this.analyticsService.trackAction(
-              AnalyticsAction.SIDEBAR_TOC_SECTION_CLICK
-            );
+            // this.analyticsService.trackAction(
+            //   AnalyticsAction.SIDEBAR_TOC_SECTION_CLICK
+            // );
 
             this.scrollContext?.scrollToSection(sectionId);
           }}

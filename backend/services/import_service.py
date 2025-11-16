@@ -7,6 +7,7 @@ Integrates with existing functions/import_pipeline/ for paper processing.
 import asyncio
 import json
 import logging
+from dataclasses import asdict
 from datetime import datetime
 
 from config import settings
@@ -18,6 +19,7 @@ from database import get_db
 from import_pipeline import import_pipeline, summaries
 from llm_models import extract_concepts
 from models.document import LoadingStatus
+from shared.json_utils import convert_keys
 from shared.types import ArxivMetadata
 from utils.surreal_utils import (
     format_record_id,
@@ -53,41 +55,27 @@ class ImportService:
 
         try:
             logger.info(f"🚀 BACKGROUND TASK STARTED: {arxiv_id} v{version}")
-            print(
-                f"🚀 BACKGROUND TASK STARTED: {arxiv_id} v{version}"
-            )  # Console output for visibility
-
-            # Convert metadata to dict for JSON serialization
-            from dataclasses import asdict
-
-            from shared.json_utils import convert_keys
-
             metadata_dict = convert_keys(asdict(metadata), "snake_to_camel")
-
             # Stage 1: Extract concepts from abstract
             await manager.send_update(
                 paper_key,
-                version,
                 {
                     "loadingStatus": LoadingStatus.WAITING.value,
                     "progress": "Extracting key concepts...",
                     "metadata": metadata_dict,
                 },
             )
-
             # Run concept extraction in thread pool (blocking LLM call)
             loop = asyncio.get_event_loop()
             concepts = await loop.run_in_executor(
                 None, extract_concepts.extract_concepts, metadata.summary
             )
-
             logger.info(f"Extracted {len(concepts)} concepts for {arxiv_id}")
 
             # Stage 2: Import document (PDF + LaTeX processing)
             print(f"📚 Stage 2/3: Processing LaTeX and PDF for {arxiv_id}...")
             await manager.send_update(
                 paper_key,
-                version,
                 {
                     "loadingStatus": LoadingStatus.WAITING.value,
                     "progress": "Processing LaTeX and PDF...",
@@ -182,7 +170,6 @@ class ImportService:
             )
             await manager.send_update(
                 paper_key,
-                version,
                 {
                     "loadingStatus": LoadingStatus.SUMMARIZING.value,
                     "progress": "Generating summaries...",
@@ -234,14 +221,10 @@ class ImportService:
                 )
                 complete_doc = {}
 
-            # Send full document to frontend (with camelCase keys)
-            from shared.json_utils import convert_keys
-
             complete_doc_camelcase = convert_keys(complete_doc, "snake_to_camel")
 
             await manager.send_update(
                 paper_key,
-                version,
                 {
                     "loadingStatus": LoadingStatus.SUCCESS.value,
                     "progress": "Complete!",
@@ -277,7 +260,6 @@ class ImportService:
 
         await manager.send_update(
             paper_key,
-            version,
             {
                 "loadingStatus": LoadingStatus.TIMEOUT.value,
                 "loadingError": error_msg,
@@ -301,7 +283,6 @@ class ImportService:
 
         await manager.send_update(
             paper_key,
-            version,
             {
                 "loadingStatus": status,
                 "loadingError": error,

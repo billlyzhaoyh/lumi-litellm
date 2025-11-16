@@ -11,8 +11,6 @@ router = APIRouter()
 async def get_document(arxiv_id: str, version: str):
     """
     Get full LumiDoc for a paper version
-
-    Replaces: Real-time Firestore listener for document
     Returns: Complete document with sections, summaries, etc.
     """
     doc = await get_document_version(arxiv_id, version)

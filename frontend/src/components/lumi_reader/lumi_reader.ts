@@ -64,10 +64,6 @@ import {
 } from '../../shared/selection_utils';
 import { createTemporaryAnswer } from '../../shared/answer_utils';
 import { classMap } from 'lit/directives/class-map.js';
-import {
-  AnalyticsAction,
-  AnalyticsService,
-} from '../../services/analytics.service';
 import { isViewportSmall } from '../../shared/responsive_utils';
 import {
   PERSONAL_SUMMARY_QUERY_NAME,
@@ -109,7 +105,6 @@ const TUTORIAL_DIALOG_DELAY = 800;
 export class LumiReader extends LightMobxLitElement {
   static override styles: CSSResultGroup = [styles];
 
-  private readonly analyticsService = core.getService(AnalyticsService);
   private readonly apiService = core.getService(ApiService);
   private readonly bannerService = core.getService(BannerService);
   private readonly dialogService = core.getService(DialogService);
@@ -409,7 +404,7 @@ export class LumiReader extends LightMobxLitElement {
   };
 
   private readonly handleConceptClick = (id: string, target: HTMLElement) => {
-    this.analyticsService.trackAction(AnalyticsAction.READER_CONCEPT_CLICK);
+    // this.analyticsService.trackAction(AnalyticsAction.READER_CONCEPT_CLICK);
 
     const concept =
       this.documentStateService.lumiDocManager?.getConceptById(id);
@@ -428,7 +423,7 @@ export class LumiReader extends LightMobxLitElement {
   };
 
   private readonly handleTextSelection = (selectionInfo: SelectionInfo) => {
-    this.analyticsService.trackAction(AnalyticsAction.READER_TEXT_SELECTION);
+    // this.analyticsService.trackAction(AnalyticsAction.READER_TEXT_SELECTION);
 
     const props = new SmartHighlightMenuProps(
       selectionInfo.selectedText,
@@ -453,7 +448,7 @@ export class LumiReader extends LightMobxLitElement {
     info: ImageInfo,
     target: HTMLElement
   ) => {
-    this.analyticsService.trackAction(AnalyticsAction.READER_IMAGE_CLICK);
+    // this.analyticsService.trackAction(AnalyticsAction.READER_IMAGE_CLICK);
 
     const props = new SmartHighlightMenuProps(
       '',

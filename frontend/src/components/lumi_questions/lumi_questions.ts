@@ -19,6 +19,7 @@ import { html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 
 import { core } from '../../core/core';
+import { ApiService } from '../../services/api.service';
 import { HistoryService } from '../../services/history.service';
 import { LumiAnswer, LumiAnswerRequest } from '../../shared/api';
 
@@ -37,10 +38,6 @@ import {
 import { classMap } from 'lit/directives/class-map.js';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import {
-  AnalyticsAction,
-  AnalyticsService,
-} from '../../services/analytics.service';
-import {
   AnswerHighlightTooltipProps,
   FloatingPanelService,
   InfoTooltipProps,
@@ -51,11 +48,12 @@ import {
   INPUT_DEBOUNCE_MS,
   MAX_QUERY_INPUT_LENGTH,
 } from '../../shared/constants';
-import { getLumiResponseCallable } from '../../shared/callables';
+import { getLumiResponseCallable } from '../../shared/api_callables';
 import { createTemporaryAnswer } from '../../shared/answer_utils';
 import { RouterService } from '../../services/router.service';
 import { SnackbarService } from '../../services/snackbar.service';
-import { FirebaseService } from '../../services/firebase.service';
+// TODO: Remove FirebaseService - migrated to FastAPI backend
+// import { FirebaseService } from '../../services/firebase.service';
 import { LightMobxLitElement } from '../light_mobx_lit_element/light_mobx_lit_element';
 import { SIDEBAR_PERSONAL_SUMMARY_TOOLTIP_TEXT } from '../../shared/constants_helper_text';
 import { SettingsService } from '../../services/settings.service';
@@ -66,10 +64,9 @@ import { debounce } from '../../shared/utils';
  */
 @customElement('lumi-questions')
 export class LumiQuestions extends LightMobxLitElement {
-  private readonly analyticsService = core.getService(AnalyticsService);
+  private readonly apiService = core.getService(ApiService);
   private readonly dialogService = core.getService(DialogService);
   private readonly documentStateService = core.getService(DocumentStateService);
-  private readonly firebaseService = core.getService(FirebaseService);
   private readonly floatingPanelService = core.getService(FloatingPanelService);
   private readonly historyService = core.getService(HistoryService);
   private readonly routerService = core.getService(RouterService);
@@ -93,16 +90,16 @@ export class LumiQuestions extends LightMobxLitElement {
   }
 
   private onReferenceClick(highlightedSpans: HighlightSelection[]) {
-    this.analyticsService.trackAction(
-      AnalyticsAction.QUESTIONS_REFERENCE_CLICK
-    );
+    // this.analyticsService.trackAction(
+    //   AnalyticsAction.QUESTIONS_REFERENCE_CLICK
+    // );
     this.documentStateService.focusOnSpan(highlightedSpans);
   }
 
   private onImageReferenceClick(imageStoragePath: string) {
-    this.analyticsService.trackAction(
-      AnalyticsAction.QUESTIONS_IMAGE_REFERENCE_CLICK
-    );
+    // this.analyticsService.trackAction(
+    //   AnalyticsAction.QUESTIONS_IMAGE_REFERENCE_CLICK
+    // );
     this.documentStateService.focusOnImage(imageStoragePath);
   }
 
@@ -123,7 +120,7 @@ export class LumiQuestions extends LightMobxLitElement {
     if (!this.query || !lumiDoc || this.historyService.isAnswerLoading) {
       return;
     }
-    this.analyticsService.trackAction(AnalyticsAction.HEADER_EXECUTE_SEARCH);
+    // this.analyticsService.trackAction(AnalyticsAction.HEADER_EXECUTE_SEARCH);
 
     const docId = this.routerService.getActiveRouteParams()['document_id'];
 
@@ -137,7 +134,7 @@ export class LumiQuestions extends LightMobxLitElement {
 
     try {
       const response = await getLumiResponseCallable(
-        this.firebaseService.functions,
+        this.apiService,
         lumiDoc,
         request,
         this.settingsService.apiKey.value

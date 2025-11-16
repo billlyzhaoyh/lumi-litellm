@@ -16,15 +16,16 @@
  */
 
 import { makeObservable, observable, ObservableMap } from 'mobx';
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  orderBy,
-  query,
-  where,
-} from 'firebase/firestore';
+// TODO: Remove Firebase/Firestore imports - migrated to FastAPI backend
+// import {
+//   collection,
+//   doc,
+//   getDoc,
+//   getDocs,
+//   orderBy,
+//   query,
+//   where,
+// } from 'firebase/firestore';
 import { ArxivCollection } from '../shared/lumi_collection';
 import {
   ArxivMetadata,
@@ -32,12 +33,14 @@ import {
   MetadataCollectionItem,
 } from '../shared/lumi_doc';
 
-import { FirebaseService } from './firebase.service';
+// TODO: Remove FirebaseService - migrated to FastAPI backend
+// import { FirebaseService } from './firebase.service';
 import { HistoryService } from './history.service';
 import { Service } from './service';
 
 interface ServiceProvider {
-  firebaseService: FirebaseService;
+  // TODO: Remove firebaseService - migrated to FastAPI backend
+  // firebaseService: FirebaseService;
   historyService: HistoryService;
 }
 

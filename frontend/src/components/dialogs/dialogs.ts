@@ -17,7 +17,6 @@
 
 import './history_dialog/history_dialog';
 import './tutorial_dialog/tutorial_dialog';
-import './user_feedback_dialog/user_feedback_dialog';
 import '../settings/tos_dialog';
 
 import { MobxLitElement } from '@adobe/lit-mobx';
@@ -37,7 +36,6 @@ export class Dialogs extends MobxLitElement {
   override render() {
     return html`
       <history-dialog></history-dialog>
-      <user-feedback-dialog></user-feedback-dialog>
       <tutorial-dialog></tutorial-dialog>
       <tos-dialog></tos-dialog>
     `;

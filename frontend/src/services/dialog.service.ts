@@ -36,9 +36,6 @@ export class TOSDialogProps extends DialogProps {
 /** Props for the HistoryDialog component. */
 export class HistoryDialogProps extends DialogProps {}
 
-/** Props for the UserFeedbackDialog component. */
-export class UserFeedbackDialogProps extends DialogProps {}
-
 /** Props for the TutorialDialog component. */
 export class TutorialDialogProps extends DialogProps {
   constructor(readonly isUserTriggered = false) {

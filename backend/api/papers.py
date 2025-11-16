@@ -1,11 +1,11 @@
 import logging
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from import_pipeline import fetch_utils
 from models.document import LoadingStatus
 from pydantic import BaseModel, Field
 from services.import_service import ImportService
-
-# Import backend modules
+from shared.json_utils import convert_keys
 from utils.surreal_utils import create_document_version, get_document_version
 
 logger = logging.getLogger(__name__)
@@ -20,23 +20,62 @@ class RequestArxivDocImportRequest(BaseModel):
     )
 
 
+class ArxivMetadataResponse(BaseModel):
+    """ArXiv paper metadata in camelCase format for frontend"""
+
+    paperId: str
+    version: str
+    title: str
+    authors: list[str]
+    summary: str
+    updatedTimestamp: str
+    publishedTimestamp: str
+
+
+class ImportStatusResponse(BaseModel):
+    """Import status response in camelCase format for frontend"""
+
+    arxivId: str
+    version: str
+    loadingStatus: str
+    updatedTimestamp: str
+    loadingError: str | None = None
+
+
+class DocumentResponse(BaseModel):
+    """Complete document response in camelCase format for frontend"""
+
+    arxivId: str
+    version: str
+    loadingStatus: str
+    updatedTimestamp: str
+    loadingError: str | None = None
+    metadata: dict | None = None
+    markdown: str | None = None
+    sections: list[dict] | None = None
+    concepts: list[dict] | None = None
+    abstract: dict | None = None
+    references: list[dict] | None = None
+    footnotes: list[dict] | None = None
+    summaries: dict | None = None
+    id: str | None = None
+    arxivDoc: str | None = None
+
+
 class RequestArxivDocImportResponse(BaseModel):
     """Response from import request"""
 
-    metadata: dict | None = None
+    metadata: ArxivMetadataResponse | None = None
     error: str | None = None
-    message: str = "Import request received (full pipeline implementation in Phase 4)"
+    message: str = "Import request received"
 
 
 @router.post("/import", response_model=RequestArxivDocImportResponse)
 async def request_arxiv_doc_import(
     request: RequestArxivDocImportRequest, background_tasks: BackgroundTasks
-):
+) -> RequestArxivDocImportResponse:
     """
-    Request import of an arXiv paper (replaces Firebase callable)
-
-    Phase 4: Creates document record, starts background import task
-    Full pipeline integration requires functions/import_pipeline setup
+    Request import of an arXiv paper
     """
     arxiv_id = request.arxiv_id
 
@@ -48,8 +87,6 @@ async def request_arxiv_doc_import(
 
     # Check license and fetch metadata
     try:
-        from import_pipeline import fetch_utils
-
         # Check license (will raise ValueError if invalid)
         fetch_utils.check_arxiv_license(arxiv_id)
 
@@ -62,15 +99,15 @@ async def request_arxiv_doc_import(
 
         arxiv_metadata = metadata_list[0]
         # Return camelCase to match frontend TypeScript interface
-        metadata_dict = {
-            "paperId": arxiv_metadata.paper_id,
-            "version": arxiv_metadata.version,
-            "title": arxiv_metadata.title,
-            "authors": arxiv_metadata.authors,
-            "summary": arxiv_metadata.summary,
-            "updatedTimestamp": arxiv_metadata.updated_timestamp,
-            "publishedTimestamp": arxiv_metadata.published_timestamp,
-        }
+        metadata_dict = ArxivMetadataResponse(
+            paperId=arxiv_metadata.paper_id,
+            version=arxiv_metadata.version,
+            title=arxiv_metadata.title,
+            authors=arxiv_metadata.authors,
+            summary=arxiv_metadata.summary,
+            updatedTimestamp=arxiv_metadata.updated_timestamp,
+            publishedTimestamp=arxiv_metadata.published_timestamp,
+        )
         version = arxiv_metadata.version
     except ValueError as e:
         raise HTTPException(
@@ -87,7 +124,7 @@ async def request_arxiv_doc_import(
         version_id = await create_document_version(
             arxiv_id=arxiv_id,
             version=version,
-            metadata=metadata_dict,
+            metadata=metadata_dict.model_dump(),
             status=LoadingStatus.WAITING.value,
         )
 
@@ -119,18 +156,18 @@ async def request_arxiv_doc_import(
         ) from e
 
 
-@router.get("/status/{arxiv_id}/{version}")
-async def get_import_status(arxiv_id: str, version: str):
+@router.get("/status/{arxiv_id}/{version}", response_model=ImportStatusResponse)
+async def get_import_status(arxiv_id: str, version: str) -> ImportStatusResponse:
     """
     Get current import status for a paper
 
     Returns:
         {
-            "arxiv_id": "2301.07041",
+            "arxivId": "2301.07041",
             "version": "1",
-            "loading_status": "WAITING",
-            "updated_timestamp": "2025-11-05T...",
-            "loading_error": null
+            "loadingStatus": "WAITING",
+            "updatedTimestamp": "2025-11-05T...",
+            "loadingError": null
         }
     """
     doc = await get_document_version(arxiv_id, version)
@@ -140,17 +177,17 @@ async def get_import_status(arxiv_id: str, version: str):
         )
 
     # Return camelCase for frontend
-    return {
-        "arxivId": doc.get("arxiv_id"),
-        "version": doc.get("version"),
-        "loadingStatus": doc.get("loading_status"),
-        "updatedTimestamp": doc.get("updated_timestamp"),
-        "loadingError": doc.get("loading_error"),
-    }
+    return ImportStatusResponse(
+        arxivId=doc.get("arxiv_id"),
+        version=doc.get("version"),
+        loadingStatus=doc.get("loading_status"),
+        updatedTimestamp=doc.get("updated_timestamp"),
+        loadingError=doc.get("loading_error"),
+    )
 
 
-@router.get("/document/{arxiv_id}/{version}")
-async def get_document(arxiv_id: str, version: str):
+@router.get("/document/{arxiv_id}/{version}", response_model=DocumentResponse)
+async def get_document(arxiv_id: str, version: str) -> DocumentResponse:
     """
     Get complete document with all fields (sections, abstract, etc.)
 
@@ -158,9 +195,8 @@ async def get_document(arxiv_id: str, version: str):
     Used by frontend when loading a document page.
 
     Returns:
-        Complete document dict with camelCase keys
+        Complete document with camelCase keys
     """
-    from shared.json_utils import convert_keys
 
     doc = await get_document_version(arxiv_id, version)
     if not doc:
@@ -170,4 +206,4 @@ async def get_document(arxiv_id: str, version: str):
 
     # Convert to camelCase for frontend TypeScript compatibility
     doc_camelcase = convert_keys(doc, "snake_to_camel")
-    return doc_camelcase
+    return DocumentResponse(**doc_camelcase)
