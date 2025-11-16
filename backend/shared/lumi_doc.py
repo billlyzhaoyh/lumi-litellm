@@ -13,94 +13,132 @@
 # limitations under the License.
 # ==============================================================================
 
-from dataclasses import dataclass
 from enum import StrEnum
 from typing import Optional
 
-from shared.types import ArxivMetadata, LoadingStatus
+from pydantic import BaseModel
+
+from shared.types import LUMI_MODEL_CONFIG, ArxivMetadata, LoadingStatus
 
 
-@dataclass
-class Position:
+class Position(BaseModel):
+    """Position within a text span"""
+
     start_index: int
     end_index: int
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class Highlight:
+
+class Highlight(BaseModel):
+    """Text highlight with color and position"""
+
     color: str
     span_id: str
     position: Position
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class Citation:
+
+class Citation(BaseModel):
+    """Citation reference to a span"""
+
     span_id: str
     position: Position
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class CitedContent:
+
+class CitedContent(BaseModel):
+    """Content with citations"""
+
     text: str
     citations: list[Citation]
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class Label:
+
+class Label(BaseModel):
+    """Label with ID"""
+
     id: str
     label: str
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class LumiSummary:
+
+class LumiSummary(BaseModel):
+    """Summary of a section, content, or span"""
+
     id: str
     summary: "LumiSpan"
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class LumiSummaries:
+
+class LumiSummaries(BaseModel):
+    """Collection of summaries for a document"""
+
     section_summaries: list[LumiSummary]
     content_summaries: list[LumiSummary]
     span_summaries: list[LumiSummary]
     abstract_excerpt_span_id: str | None = None
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class Heading:
+
+class Heading(BaseModel):
+    """Section heading"""
+
     heading_level: int
     text: str
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class ConceptContent:
+
+class ConceptContent(BaseModel):
+    """Content for a concept (key-value pair)"""
+
     label: str
     value: str
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class LumiConcept:
+
+class LumiConcept(BaseModel):
+    """A concept extracted from the document"""
+
     id: str
     name: str
     contents: list[ConceptContent]
     in_text_citations: list[Label]
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class LumiSection:
+
+class LumiSection(BaseModel):
+    """A section of the document"""
+
     id: str
     heading: Heading
     contents: list["LumiContent"]
     sub_sections: list["LumiSection"] | None = None
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class TextContent:
+
+class TextContent(BaseModel):
+    """Text content with spans"""
+
     tag_name: str
     spans: list["LumiSpan"]
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class ImageContent:
+
+class ImageContent(BaseModel):
+    """Image content with metadata"""
+
     storage_path: str
     latex_path: str
     alt_text: str
@@ -108,33 +146,48 @@ class ImageContent:
     height: float
     caption: Optional["LumiSpan"] = None
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class FigureContent:
+
+class FigureContent(BaseModel):
+    """Figure content with images and caption"""
+
     images: list[ImageContent]
     caption: Optional["LumiSpan"] = None
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class HtmlFigureContent:
+
+class HtmlFigureContent(BaseModel):
+    """HTML figure content"""
+
     html: str
     caption: Optional["LumiSpan"] = None
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class ListContent:
+
+class ListContent(BaseModel):
+    """List content (ordered or unordered)"""
+
     list_items: list["ListItem"]
     is_ordered: bool
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class ListItem:
+
+class ListItem(BaseModel):
+    """A list item with optional sub-list"""
+
     spans: list["LumiSpan"]
     subListContent: ListContent | None = None
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class LumiContent:
+
+class LumiContent(BaseModel):
+    """Content element in a document (text, image, figure, list, etc.)"""
+
     id: str
     text_content: TextContent | None = None
     image_content: ImageContent | None = None
@@ -142,15 +195,22 @@ class LumiContent:
     html_figure_content: HtmlFigureContent | None = None
     list_content: ListContent | None = None
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class LumiSpan:
+
+class LumiSpan(BaseModel):
+    """A span of text with formatting tags"""
+
     id: str
     text: str
     inner_tags: list["InnerTag"]
 
+    model_config = LUMI_MODEL_CONFIG
+
 
 class InnerTagName(StrEnum):
+    """Types of inner tags for text formatting"""
+
     BOLD = "b"
     ITALIC = "i"
     STRONG = "strong"
@@ -166,40 +226,50 @@ class InnerTagName(StrEnum):
     FOOTNOTE = "footnote"
 
 
-@dataclass
-class InnerTag:
+class InnerTag(BaseModel):
+    """An inner formatting tag within a span"""
+
     id: str
     tag_name: InnerTagName
     metadata: dict
-    position: "Position"
+    position: Position
     # These are additional recursive tags within the content of this inner tag.
     # This may happen if we have e.g. <b>[lumi-start-concept]...[lumi-end-concept]</b>
     children: list["InnerTag"]
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class LumiReference:
+
+class LumiReference(BaseModel):
+    """A reference/citation in the document"""
+
     id: str
     span: LumiSpan
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class LumiFootnote:
+
+class LumiFootnote(BaseModel):
+    """A footnote in the document"""
+
     id: str
     span: LumiSpan
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class LumiAbstract:
+
+class LumiAbstract(BaseModel):
+    """Abstract section of the document"""
+
     contents: list[LumiContent]
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class LumiDoc:
-    """Class for LumiDoc, a preprocessed Lumi document representation of a paper."""
+
+class LumiDoc(BaseModel):
+    """Complete Lumi document representation of a paper"""
 
     markdown: str
-
     sections: list[LumiSection]
     concepts: list[LumiConcept]
     abstract: LumiAbstract | None = None
@@ -209,3 +279,5 @@ class LumiDoc:
     metadata: ArxivMetadata | None = None
     loading_status: LoadingStatus | None = LoadingStatus.UNSET
     loading_error: str | None = None
+
+    model_config = LUMI_MODEL_CONFIG

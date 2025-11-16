@@ -14,9 +14,26 @@
 # ==============================================================================
 
 
-from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Optional
+
+from pydantic import BaseModel, ConfigDict
+
+
+def _camel_case_alias_generator(field_name: str) -> str:
+    """Convert snake_case to camelCase for API serialization"""
+    return "".join(
+        word.capitalize() if i > 0 else word
+        for i, word in enumerate(field_name.split("_"))
+    )
+
+
+# Reusable model config for all Lumi models
+LUMI_MODEL_CONFIG = ConfigDict(
+    alias_generator=_camel_case_alias_generator,
+    populate_by_name=True,  # Allow both snake_case and camelCase
+    json_schema_extra={"by_alias": True},  # Serialize using camelCase by default
+)
 
 
 class LoadingStatus(StrEnum):
@@ -38,31 +55,33 @@ class LoadingStatus(StrEnum):
 
 
 # Kept in sync with shared/lumi_doc.ts
-@dataclass
-class FeaturedImage:
+class FeaturedImage(BaseModel):
     """Class for featured image."""
 
     image_storage_path: str
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class MetadataCollectionItem:
+
+class MetadataCollectionItem(BaseModel):
     """Class for metadata collection item."""
 
     metadata: "ArxivMetadata"
     featured_image: Optional["FeaturedImage"] = None
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class ThrottleCollectionItem:
+
+class ThrottleCollectionItem(BaseModel):
     """Class for throttle collection item."""
 
     timestamp: Any  # Firestore timestamp created with firestore_v1.SERVER_TIMESTAMP
     succeeded: bool
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class ArxivMetadata:
+
+class ArxivMetadata(BaseModel):
     """Class for paper metadata from arxiv."""
 
     paper_id: str
@@ -73,38 +92,24 @@ class ArxivMetadata:
     updated_timestamp: str
     published_timestamp: str
 
-    def __eq__(self, other):
-        if not isinstance(other, ArxivMetadata):
-            return False
-
-        if len(self.authors) != len(other.authors):
-            return False
-        for i in range(len(self.authors)):
-            if self.authors[i] != other.authors[i]:
-                return False
-        return (
-            self.paper_id == other.paper_id
-            and self.version == other.version
-            and self.title == other.title
-            and self.summary == other.summary
-            and self.updated_timestamp == other.updated_timestamp
-            and self.published_timestamp == other.published_timestamp
-        )
+    model_config = LUMI_MODEL_CONFIG
 
 
-@dataclass
-class ImageMetadata:
+class ImageMetadata(BaseModel):
     """Class for image metadata."""
 
     storage_path: str
     width: float
     height: float
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class TableMetadata:
+
+class TableMetadata(BaseModel):
     """Class for image metadata."""
 
     html_string: str
     page_number: int
     accuracy: float
+
+    model_config = LUMI_MODEL_CONFIG

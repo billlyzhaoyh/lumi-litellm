@@ -13,30 +13,33 @@
 # limitations under the License.
 # ==============================================================================
 
-from dataclasses import dataclass
 from typing import Any
 
+from pydantic import BaseModel
+
 from shared.lumi_doc import LumiContent, Position
+from shared.types import LUMI_MODEL_CONFIG
 
 
-@dataclass
-class HighlightSelection:
+class HighlightSelection(BaseModel):
     """Represents a highlighted section of a span."""
 
     span_id: str
     position: Position
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class ImageInfo:
+
+class ImageInfo(BaseModel):
     """Information about an image for a request."""
 
     image_storage_path: str
     caption: str | None = None
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class LumiAnswerRequest:
+
+class LumiAnswerRequest(BaseModel):
     """Request object for getting a Lumi answer."""
 
     query: str | None = None
@@ -44,9 +47,10 @@ class LumiAnswerRequest:
     highlighted_spans: list[HighlightSelection] | None = None
     image: ImageInfo | None = None
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class LumiAnswer:
+
+class LumiAnswer(BaseModel):
     """A Lumi answer object, containing the response and citations."""
 
     id: str
@@ -54,9 +58,10 @@ class LumiAnswer:
     response_content: list[LumiContent]
     timestamp: int
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class QueryLog:
+
+class QueryLog(BaseModel):
     """Schema for logging user queries to Firestore."""
 
     created_timestamp: (
@@ -66,9 +71,10 @@ class QueryLog:
     arxiv_id: str
     version: str
 
+    model_config = LUMI_MODEL_CONFIG
 
-@dataclass
-class UserFeedback:
+
+class UserFeedback(BaseModel):
     """Schema for user feedback stored in Firestore."""
 
     user_feedback_text: str
@@ -76,3 +82,5 @@ class UserFeedback:
         Any  # Firestore timestamp created with firestore_v1.SERVER_TIMESTAMP
     )
     arxiv_id: str | None = None
+
+    model_config = LUMI_MODEL_CONFIG

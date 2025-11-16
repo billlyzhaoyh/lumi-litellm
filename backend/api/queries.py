@@ -1,12 +1,10 @@
 import logging
-from dataclasses import asdict
 
 from fastapi import APIRouter, HTTPException
 from import_pipeline.answers import generate_lumi_answer
 from llm_models.llm import LLMInvalidResponseException
 from pydantic import BaseModel
 from shared.api import LumiAnswer, LumiAnswerRequest
-from shared.json_utils import convert_keys
 from shared.lumi_doc import LumiDoc
 
 logger = logging.getLogger(__name__)
@@ -32,14 +30,10 @@ async def get_lumi_response(request: GetLumiResponseRequest):
     - Image queries: Questions about figures/images in the paper
     """
     try:
-        # Convert camelCase keys from frontend to snake_case for backend
-        doc_dict = convert_keys(request.doc, "camel_to_snake")
-        request_dict = convert_keys(request.request, "camel_to_snake")
-
-        # Parse dictionaries into dataclass instances
-        # Note: LumiDoc and LumiAnswerRequest dataclasses can be instantiated from dicts
-        lumi_doc = LumiDoc(**doc_dict)
-        answer_request = LumiAnswerRequest(**request_dict)
+        # Parse dictionaries into Pydantic model instances
+        # Pydantic automatically handles both camelCase (from frontend) and snake_case
+        lumi_doc = LumiDoc(**request.doc)
+        answer_request = LumiAnswerRequest(**request.request)
 
         logger.info(
             f"Generating answer for query: {answer_request.query[:50] if answer_request.query else 'N/A'}, "
@@ -52,11 +46,8 @@ async def get_lumi_response(request: GetLumiResponseRequest):
             lumi_doc, answer_request, request.api_key
         )
 
-        # Convert dataclass to dictionary
-        result = asdict(lumi_answer)
-
-        # Convert snake_case to camelCase for frontend
-        result = convert_keys(result, "snake_to_camel")
+        # Convert Pydantic model to camelCase dictionary for frontend
+        result = lumi_answer.model_dump(by_alias=True)
 
         logger.info(f"Answer generated successfully: {lumi_answer.id}")
         return result

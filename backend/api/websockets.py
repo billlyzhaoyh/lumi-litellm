@@ -2,7 +2,6 @@ import asyncio
 import logging
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from shared.json_utils import convert_keys
 from utils.surreal_utils import get_document_version
 from websocket import get_connection_manager
 
@@ -41,24 +40,23 @@ async def document_status_websocket(websocket: WebSocket, arxiv_id: str, version
         )
         doc = await get_document_version(arxiv_id, version)
         if doc:
-            doc_camelcase = convert_keys(doc, "snake_to_camel")
-            if doc_camelcase.get("loadingStatus") == "SUCCESS":
+            # Database already returns camelCase keys
+            if doc.get("loadingStatus") == "SUCCESS":
                 logger.info(
                     f"[WebSocket] Document is SUCCESS, sending full document to {arxiv_id} v{version}"
                 )
-                await manager.send_update(paper_key, doc_camelcase)
+                await manager.send_update(paper_key, doc)
             else:
                 # Extract only the necessary fields for non-SUCCESS status
                 initial_data = {
-                    "loadingStatus": doc.get("loading_status"),
-                    "updatedTimestamp": doc.get("updated_timestamp"),
+                    "loadingStatus": doc.get("loadingStatus"),
+                    "updatedTimestamp": doc.get("updatedTimestamp"),
                     "metadata": doc.get("metadata"),
                 }
-                initial_data_camelcase = convert_keys(initial_data, "snake_to_camel")
                 logger.info(
-                    f"[WebSocket] Sending initial status to {arxiv_id} v{version}: {initial_data_camelcase}"
+                    f"[WebSocket] Sending initial status to {arxiv_id} v{version}: {initial_data}"
                 )
-                await manager.send_update(paper_key, initial_data_camelcase)
+                await manager.send_update(paper_key, initial_data)
         else:
             logger.warning(
                 f"[WebSocket] No document found for {arxiv_id} v{version}, sending empty status"

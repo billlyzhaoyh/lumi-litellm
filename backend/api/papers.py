@@ -5,7 +5,6 @@ from import_pipeline import fetch_utils
 from models.document import LoadingStatus
 from pydantic import BaseModel, Field
 from services.import_service import ImportService
-from shared.json_utils import convert_keys
 from utils.surreal_utils import create_document_version, get_document_version
 
 logger = logging.getLogger(__name__)
@@ -204,6 +203,5 @@ async def get_document(arxiv_id: str, version: str) -> DocumentResponse:
             status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
         )
 
-    # Convert to camelCase for frontend TypeScript compatibility
-    doc_camelcase = convert_keys(doc, "snake_to_camel")
-    return DocumentResponse(**doc_camelcase)
+    # Database already returns camelCase keys
+    return DocumentResponse(**doc)

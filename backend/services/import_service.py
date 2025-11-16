@@ -7,7 +7,6 @@ Integrates with existing functions/import_pipeline/ for paper processing.
 import asyncio
 import json
 import logging
-from dataclasses import asdict
 from datetime import datetime
 
 from config import settings
@@ -19,7 +18,6 @@ from database import get_db
 from import_pipeline import import_pipeline, summaries
 from llm_models import extract_concepts
 from models.document import LoadingStatus
-from shared.json_utils import convert_keys
 from shared.types import ArxivMetadata
 from utils.surreal_utils import (
     format_record_id,
@@ -55,7 +53,8 @@ class ImportService:
 
         try:
             logger.info(f"🚀 BACKGROUND TASK STARTED: {arxiv_id} v{version}")
-            metadata_dict = convert_keys(asdict(metadata), "snake_to_camel")
+            # Serialize metadata to camelCase for frontend
+            metadata_dict = metadata.model_dump(by_alias=True)
             # Stage 1: Extract concepts from abstract
             await manager.send_update(
                 paper_key,
@@ -129,8 +128,8 @@ class ImportService:
             version_id = format_record_id("document_versions", f"{arxiv_id}_v{version}")
             print(f"🔍 Updating document at {version_id}")
 
-            # Convert LumiDoc to dict with camelCase keys
-            lumi_doc_dict = convert_keys(asdict(lumi_doc), "snake_to_camel")
+            # Convert LumiDoc to dict with camelCase keys for database
+            lumi_doc_dict = lumi_doc.model_dump(by_alias=True)
 
             # Debug: Check what we're about to save
             print(f"📝 Saving {len(lumi_doc_dict.get('sections', []))} sections")
@@ -188,8 +187,8 @@ class ImportService:
             logger.info(f"Summaries generated for {arxiv_id} in {elapsed:.1f}s")
             print(f"✅ Stage 3/3 complete: Generated summaries in {elapsed:.1f}s")
 
-            # Update database with summaries
-            lumi_doc_dict = convert_keys(asdict(lumi_doc), "snake_to_camel")
+            # Update database with summaries (camelCase)
+            lumi_doc_dict = lumi_doc.model_dump(by_alias=True)
 
             print(f"🔍 Updating summaries at {version_id}")
             print(f"📝 Summaries data: {lumi_doc_dict.get('summaries', {})}")
@@ -214,6 +213,7 @@ class ImportService:
             await update_document_status(arxiv_id, version, LoadingStatus.SUCCESS.value)
 
             # Fetch the complete document with parsed JSON fields
+            # Database already stores keys in camelCase, so no conversion needed
             complete_doc = await get_document_version(arxiv_id, version)
             if not complete_doc:
                 logger.error(
@@ -221,14 +221,12 @@ class ImportService:
                 )
                 complete_doc = {}
 
-            complete_doc_camelcase = convert_keys(complete_doc, "snake_to_camel")
-
             await manager.send_update(
                 paper_key,
                 {
                     "loadingStatus": LoadingStatus.SUCCESS.value,
                     "progress": "Complete!",
-                    **complete_doc_camelcase,  # Include all document fields
+                    **complete_doc,  # Include all document fields (already in camelCase)
                 },
             )
 
