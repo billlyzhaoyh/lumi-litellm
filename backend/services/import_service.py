@@ -17,8 +17,7 @@ from database import get_db
 # Import from local copies (copied from functions/)
 from import_pipeline import import_pipeline, summaries
 from llm_models import extract_concepts
-from models.document import LoadingStatus
-from shared.types import ArxivMetadata
+from shared.types import ArxivMetadata, LoadingStatus
 from utils.surreal_utils import (
     format_record_id,
     get_document_version,
@@ -213,20 +212,22 @@ class ImportService:
             await update_document_status(arxiv_id, version, LoadingStatus.SUCCESS.value)
 
             # Fetch the complete document with parsed JSON fields
-            # Database already stores keys in camelCase, so no conversion needed
             complete_doc = await get_document_version(arxiv_id, version)
             if not complete_doc:
                 logger.error(
                     f"Failed to fetch complete document for {arxiv_id} v{version}"
                 )
-                complete_doc = {}
+                complete_doc_dict = {}
+            else:
+                # Convert DocumentVersion model to dict with camelCase keys
+                complete_doc_dict = complete_doc.model_dump(by_alias=True)
 
             await manager.send_update(
                 paper_key,
                 {
                     "loadingStatus": LoadingStatus.SUCCESS.value,
                     "progress": "Complete!",
-                    **complete_doc,  # Include all document fields (already in camelCase)
+                    **complete_doc_dict,  # Include all document fields (in camelCase)
                 },
             )
 

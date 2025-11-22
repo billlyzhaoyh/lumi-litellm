@@ -35,17 +35,27 @@ async def get_document(arxiv_id: str, version: str) -> LumiDoc:
     Get full LumiDoc for a paper version
     Returns: Complete document with sections, summaries, etc.
     """
-    doc_dict = await get_document_version(arxiv_id, version)
+    doc_version = await get_document_version(arxiv_id, version)
 
-    if not doc_dict:
+    if not doc_version:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
         )
 
-    # Convert dict to Pydantic model
-    # The dict already has camelCase keys from the database
+    # Convert DocumentVersion to LumiDoc (extract just the document content fields)
     try:
-        doc = LumiDoc(**doc_dict)
+        doc = LumiDoc(
+            markdown=doc_version.markdown or "",
+            sections=doc_version.sections or [],
+            concepts=doc_version.concepts or [],
+            abstract=doc_version.abstract,
+            references=doc_version.references,
+            footnotes=doc_version.footnotes,
+            summaries=doc_version.summaries,
+            metadata=doc_version.metadata,
+            loading_status=doc_version.loading_status,
+            loading_error=doc_version.loading_error,
+        )
         return doc
     except Exception as e:
         logger.error(f"Error parsing document {arxiv_id} v{version}: {e}")
@@ -68,16 +78,16 @@ async def get_document_sections(
 
     Useful for rendering table of contents
     """
-    doc_dict = await get_document_version(arxiv_id, version)
+    doc_version = await get_document_version(arxiv_id, version)
 
-    if not doc_dict:
+    if not doc_version:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
         )
 
-    # Convert sections to Pydantic models
+    # Access sections from DocumentVersion model
     try:
-        sections = [LumiSection(**section) for section in doc_dict.get("sections", [])]
+        sections = doc_version.sections or []
         return DocumentSectionsResponse(
             arxiv_id=arxiv_id, version=version, sections=sections
         )

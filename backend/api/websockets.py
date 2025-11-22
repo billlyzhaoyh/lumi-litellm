@@ -40,18 +40,22 @@ async def document_status_websocket(websocket: WebSocket, arxiv_id: str, version
         )
         doc = await get_document_version(arxiv_id, version)
         if doc:
-            # Database already returns camelCase keys
-            if doc.get("loadingStatus") == "SUCCESS":
+            # Convert DocumentVersion model to dict with camelCase keys
+            if doc.loading_status and doc.loading_status.value == "SUCCESS":
                 logger.info(
                     f"[WebSocket] Document is SUCCESS, sending full document to {arxiv_id} v{version}"
                 )
-                await manager.send_update(paper_key, doc)
+                await manager.send_update(paper_key, doc.model_dump(by_alias=True))
             else:
                 # Extract only the necessary fields for non-SUCCESS status
                 initial_data = {
-                    "loadingStatus": doc.get("loadingStatus"),
-                    "updatedTimestamp": doc.get("updatedTimestamp"),
-                    "metadata": doc.get("metadata"),
+                    "loadingStatus": doc.loading_status.value
+                    if doc.loading_status
+                    else None,
+                    "updatedTimestamp": doc.updated_timestamp,
+                    "metadata": doc.metadata.model_dump(by_alias=True)
+                    if doc.metadata
+                    else None,
                 }
                 logger.info(
                     f"[WebSocket] Sending initial status to {arxiv_id} v{version}: {initial_data}"

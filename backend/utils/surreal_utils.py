@@ -1,10 +1,12 @@
 """SurrealDB utility functions"""
 
+import json
 import logging
 from datetime import datetime
 from typing import Any
 
 from database import get_db
+from shared.lumi_doc import DocumentVersion
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +64,7 @@ def parse_record_id(record_id: str) -> tuple[str, str]:
     return "", record_id
 
 
-async def get_document_version(arxiv_id: str, version: str) -> dict[str, Any] | None:
+async def get_document_version(arxiv_id: str, version: str) -> DocumentVersion | None:
     """
     Fetch a document version from database
 
@@ -71,9 +73,8 @@ async def get_document_version(arxiv_id: str, version: str) -> dict[str, Any] | 
         version: Version string (e.g., "1")
 
     Returns:
-        Document dict or None if not found
+        DocumentVersion model or None if not found
     """
-    import json
 
     db = get_db()
     record_id = format_record_id("document_versions", f"{arxiv_id}_v{version}")
@@ -104,7 +105,15 @@ async def get_document_version(arxiv_id: str, version: str) -> dict[str, Any] | 
                         else {}
                     )
 
-        return result
+        # Construct and return DocumentVersion model
+        try:
+            return DocumentVersion(**result)
+        except Exception as validation_error:
+            logger.error(
+                f"Failed to construct DocumentVersion for {arxiv_id} v{version}: {validation_error}"
+            )
+            return None
+
     except Exception as e:
         logger.error(f"Error fetching document version {arxiv_id} v{version}: {e}")
         return None

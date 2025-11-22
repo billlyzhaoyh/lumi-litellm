@@ -2,9 +2,9 @@ import logging
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 from import_pipeline import fetch_utils
-from models.document import LoadingStatus
 from pydantic import BaseModel, Field
 from services.import_service import ImportService
+from shared.types import LoadingStatus
 from utils.surreal_utils import create_document_version, get_document_version
 
 logger = logging.getLogger(__name__)
@@ -175,13 +175,13 @@ async def get_import_status(arxiv_id: str, version: str) -> ImportStatusResponse
             status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
         )
 
-    # Return camelCase for frontend
+    # Access fields from DocumentVersion model
     return ImportStatusResponse(
-        arxivId=doc.get("arxiv_id"),
-        version=doc.get("version"),
-        loadingStatus=doc.get("loading_status"),
-        updatedTimestamp=doc.get("updated_timestamp"),
-        loadingError=doc.get("loading_error"),
+        arxivId=doc.arxiv_id,
+        version=doc.version,
+        loadingStatus=doc.loading_status.value if doc.loading_status else "UNSET",
+        updatedTimestamp=doc.updated_timestamp or "",
+        loadingError=doc.loading_error,
     )
 
 
@@ -203,5 +203,5 @@ async def get_document(arxiv_id: str, version: str) -> DocumentResponse:
             status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
         )
 
-    # Database already returns camelCase keys
-    return DocumentResponse(**doc)
+    # Convert DocumentVersion model to dict with camelCase keys
+    return DocumentResponse(**doc.model_dump(by_alias=True))

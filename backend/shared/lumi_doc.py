@@ -281,3 +281,30 @@ class LumiDoc(BaseModel):
     loading_error: str | None = None
 
     model_config = LUMI_MODEL_CONFIG
+
+
+class DocumentVersion(BaseModel):
+    """Document version from database with all fields including metadata"""
+
+    # Database fields
+    id: str
+    arxiv_id: str
+    version: str
+    updated_timestamp: str | None = None
+    arxiv_doc: str | None = None  # Reference to parent arxiv_docs record
+
+    # Document content (same as LumiDoc)
+    markdown: str | None = None
+    sections: list[LumiSection] | None = None
+    concepts: list[LumiConcept] | None = None
+    abstract: LumiAbstract | None = None
+    references: list[LumiReference] | None = None
+    footnotes: list[LumiFootnote] | None = None
+    summaries: LumiSummaries | None = None
+
+    # Metadata fields
+    metadata: ArxivMetadata | None = None
+    loading_status: LoadingStatus | None = LoadingStatus.UNSET
+    loading_error: str | None = None
+
+    model_config = LUMI_MODEL_CONFIG
