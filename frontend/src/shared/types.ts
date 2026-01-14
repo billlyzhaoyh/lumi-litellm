@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { DocumentData, QuerySnapshot } from "firebase/firestore";
-
 /**
  * Generic wrapper type for constructors, used in the DI system.
  */
@@ -26,31 +24,28 @@ export type Constructor<T> = {
   new (...args: any[]): T;
 };
 
-/* Snapshot for Firebase calls. */
-export type Snapshot = QuerySnapshot<DocumentData, DocumentData>;
-
 /** Color palette. */
 export enum ColorMode {
-  DEFAULT = "default",
-  LIGHT = "light",
-  DARK = "dark",
+  DEFAULT = 'default',
+  LIGHT = 'light',
+  DARK = 'dark',
 }
 
 /** Focus State */
 export enum FocusState {
-  DEFAULT = "default",
-  FOCUSED = "focused",
-  UNFOCUSED = "unfocused",
+  DEFAULT = 'default',
+  FOCUSED = 'focused',
+  UNFOCUSED = 'unfocused',
 }
 
 /** Different views for main gallery page (used in home-gallery component). */
 export enum GalleryView {
-  LOCAL = "local", // show paper import, user's collection from local storage
-  CURRENT = "current", // show papers for current collection
+  LOCAL = 'local', // show paper import, user's collection from local storage
+  CURRENT = 'current', // show papers for current collection
 }
 
 export enum LumiFont {
-  PAPER_TEXT = "paper-text",
-  SPAN_SUMMARY_TEXT = "span-summary-text",
-  DEFAULT = "default",
+  PAPER_TEXT = 'paper-text',
+  SPAN_SUMMARY_TEXT = 'span-summary-text',
+  DEFAULT = 'default',
 }

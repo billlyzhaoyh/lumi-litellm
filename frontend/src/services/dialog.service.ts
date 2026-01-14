@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { action, makeObservable, observable } from "mobx";
+import { action, makeObservable, observable } from 'mobx';
 
-import { Service } from "./service";
+import { Service } from './service';
 
 /** Base class for all dialog content props. */
 export abstract class DialogProps {}
@@ -35,9 +35,6 @@ export class TOSDialogProps extends DialogProps {
 
 /** Props for the HistoryDialog component. */
 export class HistoryDialogProps extends DialogProps {}
-
-/** Props for the UserFeedbackDialog component. */
-export class UserFeedbackDialogProps extends DialogProps {}
 
 /** Props for the TutorialDialog component. */
 export class TutorialDialogProps extends DialogProps {

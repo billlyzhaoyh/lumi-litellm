@@ -15,29 +15,27 @@
  * limitations under the License.
  */
 
-import "./history_dialog/history_dialog";
-import "./tutorial_dialog/tutorial_dialog";
-import "./user_feedback_dialog/user_feedback_dialog";
-import "../settings/tos_dialog";
+import './history_dialog/history_dialog';
+import './tutorial_dialog/tutorial_dialog';
+import '../settings/tos_dialog';
 
-import { MobxLitElement } from "@adobe/lit-mobx";
-import { html } from "lit";
-import { customElement } from "lit/decorators.js";
+import { MobxLitElement } from '@adobe/lit-mobx';
+import { html } from 'lit';
+import { customElement } from 'lit/decorators.js';
 
-import { core } from "../../core/core";
-import { DialogService } from "../../services/dialog.service";
+import { core } from '../../core/core';
+import { DialogService } from '../../services/dialog.service';
 
 /**
  * A container component that renders dialogs based on the DialogService state.
  */
-@customElement("lumi-dialogs")
+@customElement('lumi-dialogs')
 export class Dialogs extends MobxLitElement {
   private readonly dialogService = core.getService(DialogService);
 
   override render() {
     return html`
       <history-dialog></history-dialog>
-      <user-feedback-dialog></user-feedback-dialog>
       <tutorial-dialog></tutorial-dialog>
       <tos-dialog></tos-dialog>
     `;
@@ -46,6 +44,6 @@ export class Dialogs extends MobxLitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "lumi-dialogs": Dialogs;
+    'lumi-dialogs': Dialogs;
   }
 }

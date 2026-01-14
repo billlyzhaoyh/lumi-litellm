@@ -15,25 +15,23 @@
  * limitations under the License.
  */
 
-import * as router5 from "router5";
-import browserPlugin from "router5-plugin-browser";
-import { computed, makeObservable, observable } from "mobx";
+import * as router5 from 'router5';
+import browserPlugin from 'router5-plugin-browser';
+import { computed, makeObservable, observable } from 'mobx';
 
-import { Service } from "./service";
-import { AnalyticsService } from "./analytics.service";
-import { DocumentStateService } from "./document_state.service";
-import { HistoryService } from "./history.service";
-import { HomeService } from "./home.service";
+import { Service } from './service';
+import { DocumentStateService } from './document_state.service';
+import { HistoryService } from './history.service';
+import { HomeService } from './home.service';
 
 interface ServiceProvider {
-  analyticsService: AnalyticsService;
   documentStateService: DocumentStateService;
   historyService: HistoryService;
   homeService: HomeService;
 }
 
-export const ARXIV_DOCS_ROUTE_NAME = "arxiv";
-const DEFAULT_COLLECTION_ID = "pair_team";
+export const ARXIV_DOCS_ROUTE_NAME = 'arxiv';
+const DEFAULT_COLLECTION_ID = 'pair_team';
 
 /**
  * Handles app routing and page navigation
@@ -46,23 +44,23 @@ export class RouterService extends Service {
     this.router = router5.createRouter(this.routes, {
       defaultRoute: Pages.HOME,
       // defaultParams,
-      queryParams: { booleanFormat: "empty-true", nullFormat: "hidden" },
-      queryParamsMode: "loose",
+      queryParams: { booleanFormat: 'empty-true', nullFormat: 'hidden' },
+      queryParamsMode: 'loose',
     });
   }
 
   protected readonly routes: router5.Route[] = [
     {
       name: Pages.HOME,
-      path: "/",
+      path: '/',
     },
     {
       name: Pages.SETTINGS,
-      path: "/settings",
+      path: '/settings',
     },
     {
       name: Pages.COLLECTION,
-      path: "/collections/:collection_id",
+      path: '/collections/:collection_id',
     },
     {
       name: Pages.ARXIV_DOCUMENT,
@@ -73,7 +71,7 @@ export class RouterService extends Service {
   private readonly router: router5.Router;
 
   @observable isNavOpen = true;
-  @observable.ref activeRoute: Route = { name: "", params: {}, path: "" };
+  @observable.ref activeRoute: Route = { name: '', params: {}, path: '' };
   @observable isHandlingRouteChange = false;
   @observable hasNavigated = false; // True if navigated at least once in app
 
@@ -96,10 +94,10 @@ export class RouterService extends Service {
   }
 
   private handlerRouteChange(routeChange: RouteChange) {
-    const prevDocId = this.activeRoute.params["document_id"];
-    const nextDocId = routeChange.route.params["document_id"];
+    const prevDocId = this.activeRoute.params['document_id'];
+    const nextDocId = routeChange.route.params['document_id'];
 
-    const newTitle = nextDocId ? `Lumi - ${nextDocId}` : "Lumi";
+    const newTitle = nextDocId ? `Lumi - ${nextDocId}` : 'Lumi';
     document.title = newTitle;
 
     if (prevDocId !== nextDocId) {
@@ -108,12 +106,6 @@ export class RouterService extends Service {
     }
 
     this.activeRoute = routeChange.route;
-    if (this.activePage) {
-      this.sp.analyticsService.trackPageView(
-        this.activePage,
-        this.activeRoute.path
-      );
-    }
 
     const currentPage = this.getPage(this.activeRoute);
     if (
@@ -129,7 +121,7 @@ export class RouterService extends Service {
 
     // If gallery page, load collections
     if (currentPage === Pages.HOME || currentPage === Pages.COLLECTION) {
-      const currentCollectionId = this.activeRoute.params["collection_id"];
+      const currentCollectionId = this.activeRoute.params['collection_id'];
       this.sp.homeService.loadCollections(currentCollectionId);
     }
   }
@@ -177,10 +169,10 @@ export type RouteChange = router5.SubscribeState;
  * Enumeration of different pages.
  */
 export enum Pages {
-  ARXIV_DOCUMENT = "ARXIV",
-  COLLECTION = "COLLECTION",
-  HOME = "HOME",
-  SETTINGS = "SETTINGS",
+  ARXIV_DOCUMENT = 'ARXIV',
+  COLLECTION = 'COLLECTION',
+  HOME = 'HOME',
+  SETTINGS = 'SETTINGS',
 }
 
 /**
@@ -199,14 +191,14 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   {
     page: Pages.HOME,
-    title: "Home",
-    icon: "home",
+    title: 'Home',
+    icon: 'home',
     isPrimaryPage: true,
   },
   {
     page: Pages.SETTINGS,
-    title: "Settings",
-    icon: "settings",
+    title: 'Settings',
+    icon: 'settings',
     isPrimaryPage: false,
   },
 ];
